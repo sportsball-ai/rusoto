@@ -4,16 +4,27 @@ use serde_json::{from_slice, Value};
 use super::super::super::request::BufferedHttpResponse;
 
 #[derive(Deserialize)]
+pub struct CancellationReason {
+    #[serde(alias = "Code", default)]
+    pub code: Option<String>,
+    #[serde(alias = "Message", default)]
+    pub message: Option<String>,
+}
+
+#[derive(Deserialize)]
 struct RawError {
     #[serde(rename = "__type", default)]
     typ: Option<String>,
     #[serde(alias = "Message", default)]
     message: Option<String>,
+    #[serde(alias = "CancellationReasons", default)]
+    cancellation_reasons: Option<Vec<CancellationReason>>,
 }
 
 pub struct Error {
     pub typ: String,
     pub msg: String,
+    pub cancellation_reasons: Option<Vec<CancellationReason>>,
 }
 
 impl Error {
@@ -28,6 +39,7 @@ impl Error {
             Some(Error {
                 typ: (*typ).to_string(),
                 msg,
+                cancellation_reasons: raw_err.cancellation_reasons,
             })
         } else {
             None
@@ -63,6 +75,7 @@ impl Error {
             Some(Error {
                 typ: typ.to_string(),
                 msg,
+                cancellation_reasons: None,
             })
         } else {
             None
